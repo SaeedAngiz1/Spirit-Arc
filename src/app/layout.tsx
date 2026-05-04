@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   creator: "Mohammad Saeed Angiz",
   icons: {
     icon: [
-      { url: "/favicon.png", type: "image/png" },
       { url: "/icon.png", type: "image/png" },
     ],
     apple: "/apple-icon.png",
@@ -25,7 +24,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="developer" content="Mohammad Saeed Angiz" />
-        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link rel="icon" href="/icon.png" type="image/png" />
       </head>
       <body>
         {children}
