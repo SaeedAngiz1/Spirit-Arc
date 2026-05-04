@@ -1,8 +1,9 @@
 # <img src="public/favicon.png" width="48" height="48" valign="middle"> Spirit Arc
 
+![GitHub repo size](https://img.shields.io/github/repo-size/SaeedAngiz1/Spirit-Arc?style=for-the-badge)
+![GitHub stars](https://img.shields.io/github/stars/SaeedAngiz1/Spirit-Arc?style=for-the-badge)
 ![Developer](https://img.shields.io/badge/Developed%20By-Mohammad%20Saeed%20Angiz-blueviolet?style=for-the-badge)
 ![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20|%20TypeScript%20|%20Framer%20Motion-black?style=for-the-badge)
-![UI Style](https://img.shields.io/badge/Theme-Frosted%20Obsidian-blue?style=for-the-badge)
 
 **Spirit Arc** is a high-fidelity, AI-powered systems architecture designer. It transforms complex technical requirements into interactive, visual architecture diagrams through a seamless natural language interface.
 
@@ -49,7 +50,7 @@ The entire experience is wrapped in a "Frosted Obsidian" aesthetic. Every compon
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/SaeedAngiz1/Spirit-Arc.git
    ```
 2. Install dependencies:
    ```bash
