@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# <img src="public/favicon.png" width="48" height="48" valign="middle"> Spirit Arc
 
-## Getting Started
+![Developer](https://img.shields.io/badge/Developed%20By-Mohammad%20Saeed%20Angiz-blueviolet?style=for-the-badge)
+![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20|%20TypeScript%20|%20Framer%20Motion-black?style=for-the-badge)
+![UI Style](https://img.shields.io/badge/Theme-Frosted%20Obsidian-blue?style=for-the-badge)
 
-First, run the development server:
+**Spirit Arc** is a high-fidelity, AI-powered systems architecture designer. It transforms complex technical requirements into interactive, visual architecture diagrams through a seamless natural language interface.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠 Exact Functionality
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Spirit Arc serves as a bridge between conceptual system design and visual representation. Its primary function is to:
+1. **Analyze Requirements**: Parse natural language descriptions of complex software systems (e.g., "Microservices with Redis caching and a PostgreSQL database").
+2. **Synthesize Architecture**: Automatically determine the necessary components (nodes) and their interactions (edges/connections).
+3. **Visualize Data**: Render these components onto a high-performance, interactive canvas where they can be manipulated, reorganized, and refined.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🧠 How It Works
 
-## Learn More
+The core of Spirit Arc is a sophisticated "Conceptual-to-Visual" pipeline:
 
-To learn more about Next.js, take a look at the following resources:
+### 1. The Configuration Layer
+Users can configure their preferred AI engine. Spirit Arc supports:
+*   **OpenAI & Anthropic**: For world-class reasoning and complex architecture synthesis.
+*   **Ollama**: For local, private architecture generation.
+*   **Custom API**: For enterprise-grade or specialized model endpoints.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. The Prompt Engine
+When a user describes a system, Spirit Arc wraps the request in a specialized "Architectural Schema" prompt. This ensures the AI returns structured JSON data containing node types (Frontend, Backend, Database, Cache, etc.) and their directional dependencies.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. The Visual Orchestrator & Code Engine
+Spirit Arc doesn't just visualize; it implements.
+*   **Auto-Layout**: Nodes are placed intelligently using a hierarchical logic.
+*   **Deep-Dive Code View**: Click any component to reveal its AI-generated source code (Express handlers, SQL schemas, etc.).
+*   **Interactive Refinement**: Add components manually (n8n style), drag them, or delete them to perfect your design.
+*   **Full Project Export**: Download your entire architecture as a structured JSON or a production-ready ZIP file containing all source files and metadata.
 
-## Deploy on Vercel
+### 4. Glassmorphism Design System
+The entire experience is wrapped in a "Frosted Obsidian" aesthetic. Every component uses real-time backdrop blurs, CSS-in-JS gradients, and micro-animations to create a premium, state-of-the-art environment for high-level engineering.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Getting Started
+
+### Prerequisites
+*   Node.js 18+
+*   An API key from a supported provider (OpenAI/Anthropic) or a local Ollama instance running.
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone [repository-url]
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+## ⚙️ AI Configuration
+1. Open the **Settings** menu (top left).
+2. Select your **Provider**.
+3. Enter your **API Key** (stored locally in session memory).
+4. For Ollama, ensure your base URL is set to `http://localhost:11434`.
+
+---
+
+## 👨‍💻 Developed By
+**Mohammad Saeed Angiz**  
+*Lead Architect & Full-Stack Developer*
+
+Spirit Arc is built with a commitment to visual excellence and technical precision.
