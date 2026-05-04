@@ -31,36 +31,39 @@ export interface DiagramData {
 }
 
 export async function generateArchitecture(prompt: string, config: AIConfig): Promise<DiagramData> {
-  const systemPrompt = `You are an elite Systems Architect. Your task is to generate a precise, production-ready architectural blueprint in JSON format.
+  const systemPrompt = `You are an elite Agentic Systems Architect. Your goal is to transform a high-level user request into a comprehensive, multi-tiered technical architecture.
+
+  THINKING PROCESS (INTERNAL LOGIC):
+  1. Decompose the request into core functional requirements (UI, Data Processing, Storage, Intelligence).
+  2. Determine the optimal tech stack (e.g., Next.js for Frontend, Express for Backend, OpenAI for Intelligence).
+  3. Define data flow: How does information move from the user to the database and back?
   
   OBLIGATORY OUTPUT FORMAT:
-  Return ONLY a single, valid JSON object. Do NOT include any preamble, introduction, markdown explanation, or closing remarks.
+  Return ONLY a single, valid JSON object. No preamble. No markdown. No chatter.
   
   JSON SCHEMA:
   {
     "nodes": [
       { 
-        "id": "unique-id", 
-        "type": "service" | "database" | "api-gateway" | "queue" | "client" | "cache" | "cloud-service",
+        "id": "node-id", 
+        "type": "client" | "server" | "database" | "ai-agent" | "cloud-function" | "gateway" | "cache",
         "data": { 
           "label": "Human Readable Name",
-          "code": "/* FULL production-ready implementation code here. Include imports, logic, and exports. */",
-          "filename": "path/to/component.ext"
+          "code": "/* COMPLETE production-ready implementation. Include imports, full logic, and exports. */",
+          "filename": "src/path/to/file.ext"
         }
       }
     ],
     "edges": [
-      { "id": "e-source-target", "source": "source-id", "target": "target-id", "label": "connection-description" }
+      { "id": "e-id", "source": "src", "target": "dest", "label": "data-description" }
     ]
   }
   
-  TECHNICAL REQUIREMENTS:
-  - id: Short strings like 'web-app', 'db-main', 'auth-service'.
-  - code: This must be the ACTUAL implementation. If it's a backend service, write Express/Node code. If a frontend, write React/TypeScript.
-  - filename: Standard paths like 'src/app.ts' or 'api/routes/user.js'.
-  - Logical flow: Edges must represent actual data dependencies.
-  
-  FAILURE TO RETURN VALID JSON WILL RESULT IN SYSTEM ERROR.`;
+  ARCHITECTURAL RULES:
+  - Client-Server Separation: Always include a dedicated UI/Client node and a Backend/Logic node if the app requires processing.
+  - Intelligence Tier: If AI features are requested, create a specific 'AI Agent' or 'Intelligence Service' node.
+  - Code Fidelity: The code inside 'data.code' must be high-quality, functional code, not placeholders.
+  - Visual Clarity: Use distinct IDs like 'frontend-main', 'api-server', 'mood-processor'.`;
 
   switch (config.provider) {
     case 'gemini':
