@@ -1,4 +1,4 @@
-# <img src="public/favicon.png" width="48" height="48" valign="middle"> Spirit Arc
+# <img src="public/favicon.png" width="280" height="280" valign="middle"> Spirit Arc
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/SaeedAngiz1/Spirit-Arc?style=for-the-badge)
 ![GitHub stars](https://img.shields.io/github/stars/SaeedAngiz1/Spirit-Arc?style=for-the-badge)
