@@ -90,9 +90,18 @@ export default function Home() {
         body: JSON.stringify({ prompt, config })
       });
 
+      const contentType = response.headers.get("content-type");
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Generation failed");
+        if (contentType && contentType.includes("application/json")) {
+          const err = await response.json();
+          throw new Error(err.error || "Generation failed");
+        } else {
+          throw new Error(`Server Error (${response.status}): The AI service is currently unavailable or returned an invalid response.`);
+        }
+      }
+
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Invalid response format from server. Please try again.");
       }
 
       const data = await response.json();
