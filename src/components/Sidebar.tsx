@@ -293,8 +293,16 @@ export default function Sidebar({
                   <select
                     value={config.provider}
                     onChange={e => setConfig({ ...config, provider: e.target.value as any })}
+                    className="provider-select"
                   >
                     <option value="gemini">Google Gemini</option>
+                    <option value="anthropic">Anthropic Claude</option>
+                    <option value="groq">Groq</option>
+                    <option value="nvidia">NVIDIA NIM</option>
+                    <option value="perplexity">Perplexity</option>
+                    <option value="mistral">Mistral AI</option>
+                    <option value="together">Together AI</option>
+                    <option value="openrouter">OpenRouter</option>
                     <option value="ollama">Ollama (Local)</option>
                     <option value="custom-openai">Custom (OpenAI Compatible)</option>
                   </select>
@@ -326,7 +334,14 @@ export default function Sidebar({
                   <label>Model Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. gemini-1.5-flash, llama3, gpt-4"
+                    placeholder={
+                      config.provider === 'gemini' ? 'gemini-1.5-flash' :
+                      config.provider === 'anthropic' ? 'claude-3-5-sonnet-20240620' :
+                      config.provider === 'groq' ? 'llama3-70b-8192' :
+                      config.provider === 'nvidia' ? 'meta/llama3-70b-instruct' :
+                      config.provider === 'mistral' ? 'mistral-large-latest' :
+                      'e.g. gpt-4, llama3'
+                    }
                     value={config.modelName}
                     onChange={e => setConfig({ ...config, modelName: e.target.value })}
                   />
@@ -674,6 +689,15 @@ export default function Sidebar({
           border: 1px solid var(--border-color);
           border-radius: 10px;
           color: white;
+          outline: none;
+        }
+
+        .provider-select {
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 12px center;
+          padding-right: 40px !important;
         }
 
         .modal-footer {

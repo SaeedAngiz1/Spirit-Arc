@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { OpenAI } from "openai";
 import { Ollama } from "ollama";
 
-export type AIProviderType = 'gemini' | 'ollama' | 'custom-openai';
+export type AIProviderType = 'gemini' | 'ollama' | 'anthropic' | 'groq' | 'nvidia' | 'perplexity' | 'mistral' | 'together' | 'openrouter' | 'custom-openai';
 
 export interface AIConfig {
   provider: AIProviderType;
@@ -51,6 +51,8 @@ export async function generateArchitecture(prompt: string, config: AIConfig): Pr
         "type": "client" | "server" | "database" | "ai-agent" | "cloud-function" | "gateway" | "cache",
         "data": { 
           "label": "Human Readable Name",
+          "category": "service" | "database" | "api-gateway" | "queue" | "client" | "cache" | "cloud-service",
+          "status": "Stable" | "Beta" | "Dev",
           "code": "/* COMPLETE production-ready implementation. Include imports, full logic, and exports. */",
           "filename": "src/path/to/file.ext"
         }
@@ -83,6 +85,20 @@ export async function generateArchitecture(prompt: string, config: AIConfig): Pr
       return await generateGemini(prompt, systemPrompt, config);
     case 'ollama':
       return await generateOllama(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl });
+    case 'anthropic':
+      return await generateAnthropic(prompt, systemPrompt, config);
+    case 'groq':
+      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://api.groq.com/openai/v1' });
+    case 'nvidia':
+      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://integrate.api.nvidia.com/v1' });
+    case 'perplexity':
+      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://api.perplexity.ai' });
+    case 'mistral':
+      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://api.mistral.ai/v1' });
+    case 'together':
+      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://api.together.xyz/v1' });
+    case 'openrouter':
+      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://openrouter.ai/api/v1' });
     case 'custom-openai':
       return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl });
     default:
@@ -136,6 +152,34 @@ async function generateOpenAI(prompt: string, systemPrompt: string, config: AICo
   });
 
   return parseAIResponse(response.choices[0].message.content || '{}');
+}
+
+async function generateAnthropic(prompt: string, systemPrompt: string, config: AIConfig): Promise<DiagramData> {
+  if (!config.apiKey) throw new Error("API Key required for Anthropic");
+  
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": config.apiKey,
+      "anthropic-version": "2023-06-01",
+      "dangerously-allow-browser": "true" // Note: Usually proxy is needed, but we'll try for local dev
+    },
+    body: JSON.stringify({
+      model: config.modelName || "claude-3-5-sonnet-20240620",
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: "user", content: prompt }],
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`Anthropic API Error: ${response.status} ${JSON.stringify(errorData)}`);
+  }
+
+  const data = await response.json();
+  return parseAIResponse(data.content[0].text);
 }
 
 function repairJSON(json: string): string {
