@@ -215,11 +215,37 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <div className={`flex-1 h-screen relative transition-all duration-300 ${isSidebarOpen ? 'ml-[312px]' : 'ml-0'}`}>
+      <div 
+        style={{ 
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          right: 0,
+          left: isSidebarOpen ? '312px' : '0',
+          transition: 'left 0.3s ease-in-out',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         {!isSidebarOpen && (
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="fixed top-6 left-6 z-[3000] p-3 bg-violet-600 rounded-xl shadow-lg hover:bg-violet-500 transition-all hover:scale-105 active:scale-95"
+            style={{
+              position: 'fixed',
+              top: '24px',
+              left: '24px',
+              zIndex: 3000,
+              padding: '12px',
+              background: 'var(--primary-color)',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+            }}
             title="Open Sidebar"
           >
             <Sparkles size={20} />

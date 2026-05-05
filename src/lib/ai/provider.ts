@@ -90,7 +90,11 @@ export async function generateArchitecture(prompt: string, config: AIConfig): Pr
     case 'groq':
       return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://api.groq.com/openai/v1' });
     case 'nvidia':
-      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://integrate.api.nvidia.com/v1' });
+      // NVIDIA NIM requires a specific base URL and sometimes model prefixes
+      return await generateOpenAI(prompt, systemPrompt, { 
+        ...config, 
+        baseUrl: cleanedBaseUrl || 'https://integrate.api.nvidia.com/v1'
+      });
     case 'perplexity':
       return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl || 'https://api.perplexity.ai' });
     case 'mistral':
@@ -139,7 +143,8 @@ async function generateOpenAI(prompt: string, systemPrompt: string, config: AICo
   const openai = new OpenAI({
     apiKey: config.apiKey || 'no-key',
     baseURL: config.baseUrl,
-    dangerouslyAllowBrowser: true
+    dangerouslyAllowBrowser: true,
+    timeout: 50000 // 50 seconds timeout
   });
 
   const response = await openai.chat.completions.create({
@@ -148,7 +153,8 @@ async function generateOpenAI(prompt: string, systemPrompt: string, config: AICo
       { role: "system", content: systemPrompt },
       { role: "user", content: prompt },
     ],
-    response_format: { type: "json_object" }
+    // Only use json_object if the provider is likely to support it
+    response_format: config.provider === 'nvidia' ? undefined : { type: "json_object" }
   });
 
   return parseAIResponse(response.choices[0].message.content || '{}');

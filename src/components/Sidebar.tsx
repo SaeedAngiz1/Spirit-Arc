@@ -56,6 +56,7 @@ export default function Sidebar({
   const [prompt, setPrompt] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isToolsCollapsed, setIsToolsCollapsed] = useState(false);
+  const [isConfigCollapsed, setIsConfigCollapsed] = useState(true);
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
@@ -148,6 +149,107 @@ export default function Sidebar({
             </button>
           </div>
 
+          <div className="project-info mt-2">
+            <div className="info-main">
+              <p className="label">AI Configuration</p>
+              <h3 className="project-name text-xs">{config.provider.toUpperCase()}</h3>
+              <p className="developer-tag">{config.modelName}</p>
+            </div>
+            <button
+              onClick={() => setIsConfigCollapsed(!isConfigCollapsed)}
+              className="toggle-tools-btn"
+              title="Toggle Configuration Section"
+            >
+              {isConfigCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+            </button>
+          </div>
+
+          <AnimatePresence initial={false}>
+            {!isConfigCollapsed && (
+              <motion.div
+                className="config-wrapper px-4 pb-4"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+              >
+                <div className="flex flex-col gap-3 pt-2">
+                  <div className="input-group">
+                    <label className="text-[10px] uppercase font-bold text-white/30 mb-1 block">Provider</label>
+                    <select
+                      value={config.provider}
+                      onChange={e => setConfig({ ...config, provider: e.target.value as any })}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                    >
+                      <option value="gemini">Google Gemini</option>
+                      <option value="anthropic">Anthropic Claude</option>
+                      <option value="groq">Groq</option>
+                      <option value="nvidia">NVIDIA NIM</option>
+                      <option value="perplexity">Perplexity</option>
+                      <option value="mistral">Mistral AI</option>
+                      <option value="together">Together AI</option>
+                      <option value="openrouter">OpenRouter</option>
+                      <option value="ollama">Ollama (Local)</option>
+                      <option value="custom-openai">Custom (OpenAI Compatible)</option>
+                    </select>
+                  </div>
+
+                  {config.provider !== 'ollama' && (
+                    <div className="input-group">
+                      <label className="text-[10px] uppercase font-bold text-white/30 mb-1 block">API Key</label>
+                      <input
+                        type="password"
+                        placeholder="••••••••••••••••"
+                        value={config.apiKey || ''}
+                        onChange={e => setConfig({ ...config, apiKey: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                      />
+                    </div>
+                  )}
+
+                  <div className="input-group">
+                    <label className="text-[10px] uppercase font-bold text-white/30 mb-1 block">Base URL</label>
+                    <input
+                      type="text"
+                      placeholder={config.provider === 'ollama' ? 'http://localhost:11434' : 'https://api.openai.com/v1'}
+                      value={config.baseUrl || ''}
+                      onChange={e => setConfig({ ...config, baseUrl: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="text-[10px] uppercase font-bold text-white/30 mb-1 block">Model Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. gpt-4, llama3"
+                      value={config.modelName}
+                      onChange={e => setConfig({ ...config, modelName: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                    />
+                  </div>
+
+                  <div className="mt-4">
+                    <button 
+                      onClick={() => setIsConfigCollapsed(true)}
+                      className="save-btn glow-hover w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white text-[11px] font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+                    >
+                      <Heart size={14} className="fill-current" />
+                      Save & Close
+                    </button>
+                    
+                    <button 
+                      onClick={() => setIsSettingsOpen(true)}
+                      className="w-full mt-2 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] text-blue-400/60 font-bold transition-all border border-white/5 uppercase tracking-wider"
+                    >
+                      Open Full Settings
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <AnimatePresence initial={false}>
             {!isToolsCollapsed && (
               <motion.div
@@ -209,7 +311,7 @@ export default function Sidebar({
                 <div className="layout-section px-4 mb-2">
                   <div className="flex items-center justify-between">
                     <p className="label m-0">Canvas Layout</p>
-                    <button 
+                    <button
                       onClick={onToggleLayout}
                       className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-bold text-white transition-colors border border-white/10"
                     >
@@ -233,9 +335,9 @@ export default function Sidebar({
                       <Trash2 size={14} /> Reset
                     </button>
                   </div>
-                  <a 
-                    href="https://www.paypal.com/donate/?hosted_button_id=FYKQWTSW6TL62" 
-                    target="_blank" 
+                  <a
+                    href="https://www.paypal.com/donate/?hosted_button_id=FYKQWTSW6TL62"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="action-btn donation-btn w-full"
                   >
@@ -336,11 +438,11 @@ export default function Sidebar({
                     type="text"
                     placeholder={
                       config.provider === 'gemini' ? 'gemini-1.5-flash' :
-                      config.provider === 'anthropic' ? 'claude-3-5-sonnet-20240620' :
-                      config.provider === 'groq' ? 'llama3-70b-8192' :
-                      config.provider === 'nvidia' ? 'meta/llama3-70b-instruct' :
-                      config.provider === 'mistral' ? 'mistral-large-latest' :
-                      'e.g. gpt-4, llama3'
+                        config.provider === 'anthropic' ? 'claude-3-5-sonnet-20240620' :
+                          config.provider === 'groq' ? 'llama3-70b-8192' :
+                            config.provider === 'nvidia' ? 'meta/llama3-70b-instruct' :
+                              config.provider === 'mistral' ? 'mistral-large-latest' :
+                                'e.g. gpt-4, llama3'
                     }
                     value={config.modelName}
                     onChange={e => setConfig({ ...config, modelName: e.target.value })}
@@ -620,7 +722,7 @@ export default function Sidebar({
           height: 100%;
           background: rgba(0,0,0,0.8);
           backdrop-filter: blur(8px);
-          z-index: 1000;
+          z-index: 3000;
           display: flex;
           align-items: center;
           justify-content: center;

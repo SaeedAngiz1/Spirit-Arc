@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateArchitecture, AIConfig } from '@/lib/ai/provider';
 
+export const maxDuration = 60; // Increase timeout to 60 seconds
+
 export async function GET() {
   return NextResponse.json({ status: "API is reachable" });
 }

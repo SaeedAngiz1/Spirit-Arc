@@ -48,6 +48,14 @@ export default function Canvas({
   onNodeClick: (_: any, node: Node) => void,
   onPaneClick: () => void
 }) {
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return <div style={{ width: '100%', height: '100%', background: 'var(--bg-color)' }} />;
+
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <ReactFlow
