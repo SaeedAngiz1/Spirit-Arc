@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { 
-  Node, 
-  Edge, 
-  applyNodeChanges, 
-  applyEdgeChanges, 
-  OnNodesChange, 
-  OnEdgesChange, 
-  OnConnect, 
+import {
+  Node,
+  Edge,
+  applyNodeChanges,
+  applyEdgeChanges,
+  OnNodesChange,
+  OnEdgesChange,
+  OnConnect,
   addEdge,
-  Connection 
+  Connection
 } from 'reactflow';
 import Canvas from '@/components/Canvas';
 import Sidebar from '@/components/Sidebar';
@@ -20,14 +20,14 @@ import { Loader2, Terminal, X, Trash2, Sparkles } from 'lucide-react';
 import { getLayoutedElements } from '@/lib/utils/layout';
 
 const initialNodes: Node[] = [
-  { 
-    id: 'hero', 
-    data: { label: '🚀 Spirit Arc' }, 
+  {
+    id: 'hero',
+    data: { label: '🚀 Spirit Arc' },
     position: { x: 250, y: 150 },
-    style: { 
-      background: 'var(--primary-color)', 
-      color: 'white', 
-      padding: '20px 40px', 
+    style: {
+      background: 'var(--primary-color)',
+      color: 'white',
+      padding: '20px 40px',
       borderRadius: '20px',
       fontSize: '18px',
       fontWeight: 'bold',
@@ -40,7 +40,10 @@ export default function Home() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('TB');
+  const [reasoning, setReasoning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [config, setConfig] = useState<AIConfig>({
     provider: 'gemini',
     modelName: 'gemini-1.5-flash',
@@ -83,7 +86,7 @@ export default function Home() {
     try {
       setIsLoading(true);
       console.log("Generating architecture for:", prompt);
-      
+
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -106,12 +109,16 @@ export default function Home() {
 
       const data = await response.json();
       
+      if (data.reasoning) {
+        setReasoning(data.reasoning);
+      }
+
       // Process nodes and edges with auto-layout
       const rawNodes = data.nodes.map((n: any) => ({
         ...n,
-        style: n.style || { 
-          background: 'var(--surface-color)', 
-          color: 'white', 
+        style: n.style || {
+          background: 'var(--surface-color)',
+          color: 'white',
           border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '10px'
@@ -120,7 +127,8 @@ export default function Home() {
 
       const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
         rawNodes,
-        data.edges
+        data.edges || [],
+        layoutDirection
       );
 
       setNodes(layoutedNodes);
@@ -139,14 +147,14 @@ export default function Home() {
       id,
       type,
       position: { x: Math.random() * 400, y: Math.random() * 400 },
-      data: { 
+      data: {
         label: `New ${type}`,
         code: `// Initial boilerplate for ${type}\nexport const ${type.replace(/-/g, '_')} = () => {\n  console.log("${type} initialized");\n};`,
         filename: `${type}.js`
       },
-      style: { 
-        background: 'var(--surface-color)', 
-        color: 'white', 
+      style: {
+        background: 'var(--surface-color)',
+        color: 'white',
         border: '1px solid var(--border-color)',
         borderRadius: '12px',
         padding: '10px'
@@ -172,6 +180,14 @@ export default function Home() {
     setSelectedNode(null);
   }, []);
 
+  const handleToggleLayout = () => {
+    const newDir = layoutDirection === 'TB' ? 'LR' : 'TB';
+    setLayoutDirection(newDir);
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, newDir);
+    setNodes([...layoutedNodes]);
+    setEdges([...layoutedEdges]);
+  };
+
   const handleDeleteNode = (id: string) => {
     setNodes((nds) => nds.filter((n) => n.id !== id));
     setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
@@ -180,22 +196,40 @@ export default function Home() {
 
   return (
     <main style={{ width: '100vw', height: '100vh', background: 'var(--bg-color)', display: 'flex', overflow: 'hidden', position: 'relative' }}>
-      <Sidebar 
-        onGenerate={handleGenerate} 
-        onReset={handleReset} 
-        config={config} 
-        setConfig={setConfig} 
-        nodes={nodes}
-        edges={edges}
-        onAddNode={handleAddNode}
-      />
-      
-      <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
-        <Canvas 
-          nodes={nodes} 
-          edges={edges} 
-          onNodesChange={onNodesChange} 
-          onEdgesChange={onEdgesChange} 
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <Sidebar
+            onGenerate={handleGenerate}
+            onReset={handleReset}
+            config={config}
+            setConfig={setConfig}
+            nodes={nodes}
+            edges={edges}
+            onAddNode={handleAddNode}
+            reasoning={reasoning}
+            layoutDirection={layoutDirection}
+            onToggleLayout={handleToggleLayout}
+            onClose={() => setIsSidebarOpen(false)}
+            isOpen={isSidebarOpen}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className={`flex-1 h-screen relative transition-all duration-300 ${isSidebarOpen ? 'ml-[312px]' : 'ml-0'}`}>
+        {!isSidebarOpen && (
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="fixed top-6 left-6 z-[3000] p-3 bg-violet-600 rounded-xl shadow-lg hover:bg-violet-500 transition-all hover:scale-105 active:scale-95"
+            title="Open Sidebar"
+          >
+            <Sparkles size={20} />
+          </button>
+        )}
+        <Canvas
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
@@ -205,14 +239,14 @@ export default function Home() {
       {/* Global Overlays - Moved to root level and strictly layered */}
       <AnimatePresence>
         {selectedNode && (
-          <motion.div 
+          <motion.div
             className="code-panel glass"
             initial={{ x: 450, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 450, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{ 
-              zIndex: 2000, 
+            style={{
+              zIndex: 2000,
               pointerEvents: 'all',
               position: 'fixed',
               top: '20px',
@@ -233,8 +267,8 @@ export default function Home() {
             <div className="panel-content scrollable">
               <div className="edit-group">
                 <label className="label">Component Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="edit-input"
                   value={selectedNode.data.label}
                   onChange={(e) => {
@@ -252,8 +286,8 @@ export default function Home() {
                 </div>
                 <div className="edit-group" style={{ flex: 2 }}>
                   <label className="label">Filename</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="edit-input mono"
                     value={selectedNode.data.filename || ''}
                     onChange={(e) => {
@@ -304,7 +338,7 @@ export default function Home() {
       <AnimatePresence>
         {error && (
           <div className="error-overlay-container" onClick={() => setError(null)}>
-            <motion.div 
+            <motion.div
               className="error-card glass"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -320,17 +354,24 @@ export default function Home() {
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="error-body">
+                <div className="provider-badge">
+                  Using Provider: <span className="highlight">{config.provider}</span> ({config.modelName})
+                </div>
                 <p className="error-description">
                   "{error}"
                 </p>
                 <p className="guidance-text">
-                  Your request is a great start! To build a precise architecture, try adding specific components like <b>"Redis cache," "PostgreSQL,"</b> or <b>"Auth service."</b>
+                  {error.includes("404") ? (
+                    <span>It looks like the <b>AI service endpoint</b> was not found. Please check your <b>Model Name</b> and <b>Base URL</b> in the settings.</span>
+                  ) : (
+                    <span>Your request is a great start! To build a precise architecture, try adding specific components like <b>"Redis cache," "PostgreSQL,"</b> or <b>"Auth service."</b></span>
+                  )}
                 </p>
 
                 <div className="divider" />
-                
+
                 <p className="label">Or try one of our proven blueprints:</p>
                 <div className="suggestion-grid">
                   {[
@@ -339,7 +380,7 @@ export default function Home() {
                     "Microservices with RabbitMQ",
                     "AI Pipeline with Python & S3"
                   ].map((suggestion) => (
-                    <button 
+                    <button
                       key={suggestion}
                       className="suggestion-chip"
                       onClick={() => {
@@ -366,7 +407,7 @@ export default function Home() {
       <AnimatePresence>
         {isLoading && (
           <div className="loading-overlay-container">
-            <motion.div 
+            <motion.div
               className="loading-overlay glass"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -765,6 +806,20 @@ export default function Home() {
         .retry-btn:hover {
           transform: translateY(-2px);
           filter: brightness(1.1);
+        }
+        .provider-badge {
+          font-size: 11px;
+          color: var(--text-secondary);
+          margin-bottom: 12px;
+          background: rgba(255,255,255,0.03);
+          padding: 6px 12px;
+          border-radius: 8px;
+          display: inline-block;
+        }
+
+        .provider-badge .highlight {
+          color: var(--primary-color);
+          font-weight: 600;
         }
       `}</style>
     </main>

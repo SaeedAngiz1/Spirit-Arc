@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Settings as SettingsIcon, 
-  Cpu, 
-  Sparkles, 
-  Send, 
-  Trash2, 
-  Code, 
-  X, 
-  ChevronDown, 
+import {
+  Settings as SettingsIcon,
+  Cpu,
+  Sparkles,
+  Send,
+  Trash2,
+  Code,
+  X,
+  ChevronDown,
   ChevronUp,
   Plus,
   FileCode,
@@ -18,21 +18,27 @@ import {
   Layers,
   Layout,
   Archive,
-  Terminal
+  Terminal,
+  Minimize2,
+  Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AIConfig } from '@/lib/ai/provider';
 import { Node, Edge } from 'reactflow';
 import JSZip from 'jszip';
 
-export default function Sidebar({ 
-  onGenerate, 
+export default function Sidebar({
+  onGenerate,
   onReset,
   config,
   setConfig,
   nodes,
   edges,
-  onAddNode
+  onAddNode,
+  reasoning,
+  layoutDirection,
+  onToggleLayout,
+  onClose
 }: {
   onGenerate: (prompt: string) => void;
   onReset: () => void;
@@ -41,6 +47,11 @@ export default function Sidebar({
   nodes: Node[];
   edges: Edge[];
   onAddNode: (type: string) => void;
+  reasoning: string | null;
+  layoutDirection: 'TB' | 'LR';
+  onToggleLayout: () => void;
+  onClose: () => void;
+  isOpen: boolean;
 }) {
   const [prompt, setPrompt] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -64,7 +75,7 @@ export default function Sidebar({
 
   const handleDownloadZIP = async () => {
     const zip = new JSZip();
-    
+
     // Add architecture metadata
     const structure = {
       nodes: nodes.map(n => ({ id: n.id, type: n.type, label: n.data.label })),
@@ -96,20 +107,29 @@ export default function Sidebar({
 
   return (
     <>
-      <motion.div 
+      <motion.div
         className="sidebar glass"
-        initial={{ x: -100, opacity: 0 }}
+        initial={{ x: -320, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+        exit={{ x: -320, opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 120 }}
       >
         <div className="sidebar-header">
           <div className="logo">
             <Sparkles size={24} color="var(--primary-color)" />
             <h2>Spirit Arc</h2>
           </div>
-          <button onClick={() => setIsSettingsOpen(true)} className="icon-btn">
-            <SettingsIcon size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsSettingsOpen(true)} className="icon-btn">
+              <SettingsIcon size={20} />
+            </button>
+            <button onClick={onClose} className="icon-btn text-white/40 hover:text-white transition-colors" title="Collapse Sidebar">
+              <Minimize2 size={20} />
+            </button>
+            <button onClick={onClose} className="icon-btn text-white/40 hover:text-white transition-colors">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="sidebar-content scrollable">
@@ -119,9 +139,10 @@ export default function Sidebar({
               <h3 className="project-name">Architecture Studio</h3>
               <p className="developer-tag">By Mohammad Saeed Angiz</p>
             </div>
-            <button 
-              onClick={() => setIsToolsCollapsed(!isToolsCollapsed)} 
+            <button
+              onClick={() => setIsToolsCollapsed(!isToolsCollapsed)}
               className="toggle-tools-btn"
+              title="Toggle Tools Section"
             >
               {isToolsCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
             </button>
@@ -129,7 +150,7 @@ export default function Sidebar({
 
           <AnimatePresence initial={false}>
             {!isToolsCollapsed && (
-              <motion.div 
+              <motion.div
                 className="tools-wrapper"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
@@ -143,12 +164,25 @@ export default function Sidebar({
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleGenerate())}
+                    className="min-h-[60px] max-h-[120px]"
                   />
                   <button onClick={handleGenerate} className="generate-btn glow-hover">
                     <Send size={18} />
                     Generate
                   </button>
                 </div>
+
+                {reasoning && (
+                  <div className="reasoning-section p-4 mx-4 mt-2 bg-violet-500/10 border border-violet-500/20 rounded-xl">
+                    <div className="flex items-center gap-2 mb-2 text-violet-400">
+                      <Cpu size={16} />
+                      <span className="text-[10px] uppercase tracking-widest font-bold">Thought Process</span>
+                    </div>
+                    <p className="text-xs text-white/70 italic leading-relaxed max-h-[100px] overflow-y-auto pr-2 custom-scrollbar">
+                      "{reasoning}"
+                    </p>
+                  </div>
+                )}
 
                 <div className="divider" />
 
@@ -172,20 +206,42 @@ export default function Sidebar({
 
                 <div className="divider" />
 
-                <div className="actions">
-                  <p className="label">Export Options</p>
-                  <button onClick={handleDownloadZIP} className="action-btn primary-solid">
-                    <FileCode size={18} />
-                    Download Project ZIP
+                <div className="layout-section px-4 mb-2">
+                  <div className="flex items-center justify-between">
+                    <p className="label m-0">Canvas Layout</p>
+                    <button 
+                      onClick={onToggleLayout}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-bold text-white transition-colors border border-white/10"
+                    >
+                      {layoutDirection === 'TB' ? <ChevronDown size={14} /> : <ChevronUp size={14} className="rotate-90" />}
+                      {layoutDirection === 'TB' ? 'VERTICAL' : 'HORIZONTAL'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="actions mt-auto">
+                  <p className="label">Project Controls</p>
+                  <button onClick={handleDownloadZIP} className="action-btn primary-solid mb-2">
+                    <FileCode size={16} />
+                    Download ZIP
                   </button>
-                  <button onClick={handleDownloadJSON} className="action-btn secondary">
-                    <Download size={18} />
-                    Download JSON
-                  </button>
-                  <button onClick={onReset} className="action-btn danger">
-                    <Trash2 size={18} />
-                    Reset Canvas
-                  </button>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <button onClick={handleDownloadJSON} className="action-btn secondary">
+                      <Download size={14} /> JSON
+                    </button>
+                    <button onClick={onReset} className="action-btn danger">
+                      <Trash2 size={14} /> Reset
+                    </button>
+                  </div>
+                  <a 
+                    href="https://www.paypal.com/donate/?hosted_button_id=FYKQWTSW6TL62" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="action-btn donation-btn w-full"
+                  >
+                    <Heart size={16} fill="currentColor" />
+                    Support Project
+                  </a>
                 </div>
               </motion.div>
             )}
@@ -203,14 +259,14 @@ export default function Sidebar({
 
       <AnimatePresence>
         {isSettingsOpen && (
-          <motion.div 
+          <motion.div
             className="modal-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSettingsOpen(false)}
           >
-            <motion.div 
+            <motion.div
               className="modal glass"
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -219,85 +275,85 @@ export default function Sidebar({
             >
               <div className="modal-header">
                 <h3>AI Configuration</h3>
-                <button 
+                <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsSettingsOpen(false);
-                  }} 
+                  }}
                   className="close-btn"
                   aria-label="Close settings"
                 >
                   <X size={20} />
                 </button>
               </div>
-            <div className="modal-body scrollable">
-              <div className="input-group">
-                <label>Provider</label>
-                <select 
-                  value={config.provider} 
-                  onChange={e => setConfig({...config, provider: e.target.value as any})}
-                >
-                  <option value="gemini">Google Gemini</option>
-                  <option value="ollama">Ollama (Local)</option>
-                  <option value="custom-openai">Custom (OpenAI Compatible)</option>
-                </select>
-              </div>
-
-              {config.provider !== 'ollama' && (
+              <div className="modal-body scrollable">
                 <div className="input-group">
-                  <label>API Key</label>
-                  <input 
-                    type="password" 
-                    placeholder="Enter your API Key" 
-                    value={config.apiKey || ''}
-                    onChange={e => setConfig({...config, apiKey: e.target.value})}
+                  <label>Provider</label>
+                  <select
+                    value={config.provider}
+                    onChange={e => setConfig({ ...config, provider: e.target.value as any })}
+                  >
+                    <option value="gemini">Google Gemini</option>
+                    <option value="ollama">Ollama (Local)</option>
+                    <option value="custom-openai">Custom (OpenAI Compatible)</option>
+                  </select>
+                </div>
+
+                {config.provider !== 'ollama' && (
+                  <div className="input-group">
+                    <label>API Key</label>
+                    <input
+                      type="password"
+                      placeholder="Enter your API Key"
+                      value={config.apiKey || ''}
+                      onChange={e => setConfig({ ...config, apiKey: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                <div className="input-group">
+                  <label>Base URL</label>
+                  <input
+                    type="text"
+                    placeholder={config.provider === 'ollama' ? 'http://localhost:11434' : 'https://api.openai.com/v1'}
+                    value={config.baseUrl || ''}
+                    onChange={e => setConfig({ ...config, baseUrl: e.target.value })}
                   />
                 </div>
-              )}
 
-              <div className="input-group">
-                <label>Base URL</label>
-                <input 
-                  type="text" 
-                  placeholder={config.provider === 'ollama' ? 'http://localhost:11434' : 'https://api.openai.com/v1'} 
-                  value={config.baseUrl || ''}
-                  onChange={e => setConfig({...config, baseUrl: e.target.value})}
-                />
+                <div className="input-group">
+                  <label>Model Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. gemini-1.5-flash, llama3, gpt-4"
+                    value={config.modelName}
+                    onChange={e => setConfig({ ...config, modelName: e.target.value })}
+                  />
+                </div>
               </div>
-
-              <div className="input-group">
-                <label>Model Name</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. gemini-1.5-flash, llama3, gpt-4" 
-                  value={config.modelName}
-                  onChange={e => setConfig({...config, modelName: e.target.value})}
-                />
+              <div className="modal-footer">
+                <button onClick={() => setIsSettingsOpen(false)} className="save-btn glow-hover">
+                  Save & Close
+                </button>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button onClick={() => setIsSettingsOpen(false)} className="save-btn glow-hover">
-                Save & Close
-              </button>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
       </AnimatePresence>
 
       <style jsx>{`
         .sidebar {
           position: fixed;
-          top: 20px;
-          left: 20px;
-          width: 320px;
-          height: calc(100vh - 40px);
-          z-index: 100;
+          top: 16px;
+          left: 16px;
+          width: 280px;
+          height: calc(100vh - 32px);
+          z-index: 2000;
           border-radius: 20px;
           display: flex;
           flex-direction: column;
-          padding: 24px;
+          padding: 20px;
           box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
 
@@ -305,7 +361,7 @@ export default function Sidebar({
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 32px;
+          margin-bottom: 20px;
           flex-shrink: 0;
         }
 
@@ -336,8 +392,9 @@ export default function Sidebar({
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 32px;
+          gap: 8px;
           overflow-x: hidden;
+          padding-bottom: 10px;
         }
 
         .sidebar-content.scrollable {
@@ -398,20 +455,21 @@ export default function Sidebar({
         .tools-wrapper {
           display: flex;
           flex-direction: column;
-          gap: 32px;
+          gap: 12px;
           overflow: hidden;
         }
 
         .prompt-section textarea {
           width: 100%;
-          height: 120px;
+          height: 60px;
           background: var(--surface-color);
           border: 1px solid var(--border-color);
           border-radius: 12px;
-          padding: 12px;
+          padding: 10px;
           color: white;
           resize: none;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
+          font-size: 13px;
           transition: border-color 0.3s;
         }
 
@@ -505,6 +563,19 @@ export default function Sidebar({
         .action-btn.secondary:hover {
           background: rgba(255, 255, 255, 0.08);
           border-color: var(--text-secondary);
+        }
+
+        .donation-btn {
+          background: rgba(236, 72, 153, 0.1) !important;
+          color: #ec4899 !important;
+          border: 1px solid rgba(236, 72, 153, 0.2) !important;
+          justify-content: center;
+          font-weight: 600;
+        }
+
+        .donation-btn:hover {
+          background: rgba(236, 72, 153, 0.2) !important;
+          transform: translateY(-1px);
         }
 
         .sidebar-footer {
@@ -638,6 +709,13 @@ export default function Sidebar({
         .save-btn:hover {
           transform: translateY(-2px);
           background: #8b5cf6;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: var(--primary-color);
+          border-radius: 10px;
         }
       `}</style>
     </>

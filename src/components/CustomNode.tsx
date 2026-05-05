@@ -18,13 +18,20 @@ const CustomNode = ({ data, type, selected }: NodeProps) => {
   return (
     <div className={`custom-node ${selected ? 'selected' : ''}`}>
       <Handle type="target" position={Position.Top} />
-      
+
       <div className="node-inner">
         <div className="node-icon">
           <Icon size={18} />
         </div>
         <div className="node-content">
-          <div className="type-badge">{type?.replace(/-/g, ' ')}</div>
+          <div className="flex items-center gap-2">
+            <div className="type-badge">{data.category?.replace(/-/g, ' ')}</div>
+            {data.status && (
+              <div className={`status-pill ${data.status.toLowerCase()}`}>
+                {data.status}
+              </div>
+            )}
+          </div>
           <div className="node-label">{data.label}</div>
         </div>
         <div className="edit-action">
@@ -113,6 +120,26 @@ const CustomNode = ({ data, type, selected }: NodeProps) => {
           background: var(--primary-color);
           color: white;
           border-color: var(--primary-color);
+        }
+
+        .status-pill {
+          font-size: 7px;
+          padding: 1px 5px;
+          border-radius: 4px;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+
+        .status-pill.stable {
+          background: rgba(16, 185, 129, 0.1);
+          color: #10b981;
+          border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-pill.beta {
+          background: rgba(245, 158, 11, 0.1);
+          color: #f59e0b;
+          border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
         :global(.react-flow__handle) {

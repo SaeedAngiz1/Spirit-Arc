@@ -28,6 +28,7 @@ export interface DiagramEdge {
 export interface DiagramData {
   nodes: DiagramNode[];
   edges: DiagramEdge[];
+  reasoning: string;
 }
 
 export async function generateArchitecture(prompt: string, config: AIConfig): Promise<DiagramData> {
@@ -43,6 +44,7 @@ export async function generateArchitecture(prompt: string, config: AIConfig): Pr
   
   JSON SCHEMA:
   {
+    "reasoning": "A high-level technical rationale for the architectural decisions made.",
     "nodes": [
       { 
         "id": "node-id", 
@@ -65,13 +67,24 @@ export async function generateArchitecture(prompt: string, config: AIConfig): Pr
   - Code Fidelity: The code inside 'data.code' must be high-quality, functional code, not placeholders.
   - Visual Clarity: Use distinct IDs like 'frontend-main', 'api-server', 'mood-processor'.`;
 
+  let cleanedBaseUrl = config.baseUrl;
+  if (cleanedBaseUrl) {
+    // Remove trailing slashes and common API paths that libraries append themselves
+    cleanedBaseUrl = cleanedBaseUrl.replace(/\/+$/, '');
+    if (config.provider === 'ollama') {
+      cleanedBaseUrl = cleanedBaseUrl.replace(/\/api$/, '');
+    } else if (config.provider === 'custom-openai') {
+      cleanedBaseUrl = cleanedBaseUrl.replace(/\/v1$/, '');
+    }
+  }
+
   switch (config.provider) {
     case 'gemini':
       return await generateGemini(prompt, systemPrompt, config);
     case 'ollama':
-      return await generateOllama(prompt, systemPrompt, config);
+      return await generateOllama(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl });
     case 'custom-openai':
-      return await generateOpenAI(prompt, systemPrompt, config);
+      return await generateOpenAI(prompt, systemPrompt, { ...config, baseUrl: cleanedBaseUrl });
     default:
       throw new Error(`Unsupported provider: ${config.provider}`);
   }
@@ -81,13 +94,13 @@ async function generateGemini(prompt: string, systemPrompt: string, config: AICo
   if (!config.apiKey) throw new Error("API Key required for Gemini");
   const genAI = new GoogleGenerativeAI(config.apiKey);
   // Using JSON mode if supported by the model
-  const model = genAI.getGenerativeModel({ 
+  const model = genAI.getGenerativeModel({
     model: config.modelName,
     generationConfig: {
       responseMimeType: "application/json",
     }
   });
-  
+
   const result = await model.generateContent(`${systemPrompt}\n\nUser Request: ${prompt}`);
   const text = result.response.text();
   return parseAIResponse(text);
@@ -110,7 +123,7 @@ async function generateOpenAI(prompt: string, systemPrompt: string, config: AICo
   const openai = new OpenAI({
     apiKey: config.apiKey || 'no-key',
     baseURL: config.baseUrl,
-    dangerouslyAllowBrowser: true 
+    dangerouslyAllowBrowser: true
   });
 
   const response = await openai.chat.completions.create({
@@ -138,7 +151,7 @@ function repairJSON(json: string): string {
       }
     }
   }
-  
+
   let repaired = json;
   // If we have open braces/brackets, close them in reverse order
   while (stack.length > 0) {
@@ -149,14 +162,14 @@ function repairJSON(json: string): string {
 
 function parseAIResponse(text: string): DiagramData {
   let cleaned = text.trim();
-  
+
   // 1. Remove Markdown code blocks
   cleaned = cleaned.replace(/^```json\s*/i, '').replace(/```\s*$/i, '');
-  
+
   // 2. Isolate JSON object
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
-  
+
   if (firstBrace !== -1) {
     // If we have a last brace, take everything between them
     if (lastBrace !== -1 && lastBrace > firstBrace) {
@@ -170,25 +183,26 @@ function parseAIResponse(text: string): DiagramData {
 
   try {
     const parsed = JSON.parse(cleaned);
-    
+
     // Structure Validation
     if (!parsed.nodes || !Array.isArray(parsed.nodes)) {
       throw new Error("Invalid structure: missing 'nodes' array");
     }
-    
+
     return parsed as DiagramData;
   } catch (e: any) {
     console.warn("JSON Parse Failed, attempting aggressive recovery...", e);
-    
+
     try {
       // Final attempt: regex match for anything resembling the nodes array
       const nodesMatch = text.match(/"nodes"\s*:\s*(\[[\s\S]*?\])/);
       const edgesMatch = text.match(/"edges"\s*:\s*(\[[\s\S]*?\])/);
-      
+
       if (nodesMatch) {
         return {
           nodes: JSON.parse(repairJSON(nodesMatch[1])),
-          edges: edgesMatch ? JSON.parse(repairJSON(edgesMatch[1])) : []
+          edges: edgesMatch ? JSON.parse(repairJSON(edgesMatch[1])) : [],
+          reasoning: "Architecture generated based on the specified requirements."
         };
       }
     } catch (innerError) {
